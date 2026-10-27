@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+  <rect width="1280" height="640" fill="#0b0f14"/>
+  <path d="M0 96H1280M0 192H1280M0 288H1280M0 384H1280M0 480H1280M0 576H1280M96 0V640M192 0V640M288 0V640M384 0V640M480 0V640M576 0V640M672 0V640M768 0V640M864 0V640M960 0V640M1056 0V640M1152 0V640" stroke="#18212b"/>
+  <rect x="64" y="60" width="1152" height="520" rx="28" fill="#101720" stroke="#293747" stroke-width="2"/>
+  <text x="112" y="132" fill="#f59e0b" font-family="ui-monospace, monospace" font-size="24" font-weight="700">0xreconlion / DETERMINISTIC LOCAL-MODEL EVAL</text>
+  <text x="108" y="246" fill="#f7f8fa" font-family="Inter, Arial, sans-serif" font-size="88" font-weight="800">BoundaryBench</text>
+  <text x="112" y="310" fill="#aebdca" font-family="Inter, Arial, sans-serif" font-size="31">Does the model stay inside the authority boundary?</text>
+  <g transform="translate(112 366)" font-family="ui-monospace, monospace" font-size="22" font-weight="700">
+    <rect width="286" height="116" rx="18" fill="#f59e0b"/><text x="101" y="68" fill="#0b0f14">CALL</text>
+    <rect x="316" width="286" height="116" rx="18" fill="#151f2a" stroke="#f59e0b" stroke-width="2"/><text x="405" y="68" fill="#f7f8fa">REFUSE</text>
+    <rect x="632" width="286" height="116" rx="18" fill="#151f2a" stroke="#f59e0b" stroke-width="2"/><text x="704" y="68" fill="#f7f8fa">CLARIFY</text>
+    <rect x="948" width="96" height="116" rx="18" fill="#151f2a" stroke="#516477"/><text x="970" y="55" fill="#f59e0b">48</text><text x="963" y="82" fill="#aebdca" font-size="14">CASES</text>
+  </g>
+  <text x="112" y="548" fill="#708396" font-family="ui-monospace, monospace" font-size="20">NO MODEL JUDGE · STRICT JSON · SANITIZED PUBLIC CARDS · HUMAN REVIEW</text>
+</svg>

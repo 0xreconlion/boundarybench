@@ -1,0 +1,16 @@
+[Unit]
+Description=Queue one BoundaryBench candidate when the private GPU is idle
+After=reconlab-worker.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=%h/.config/reconlab/boundarybench-weekly.env
+ExecStart=%h/.local/bin/boundarybench queue-weekly --model ${BOUNDARYBENCH_MODEL} --suite ${BOUNDARYBENCH_SUITE}
+
+# The benchmark needs only the local queue/database and loopback Ollama path.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=%h/reconcoda-results/RC-LAB-CONSOLE
+

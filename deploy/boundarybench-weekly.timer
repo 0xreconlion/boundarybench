@@ -1,0 +1,12 @@
+[Unit]
+Description=Weekly BoundaryBench candidate queue check
+
+[Timer]
+OnCalendar=weekly
+RandomizedDelaySec=2h
+Persistent=false
+Unit=boundarybench-weekly.service
+
+[Install]
+WantedBy=timers.target
+
