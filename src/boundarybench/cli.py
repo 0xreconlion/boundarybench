@@ -16,6 +16,9 @@ def parser() -> argparse.ArgumentParser:
     run.add_argument("--model", required=True)
     run.add_argument("--suite", required=True)
     run.add_argument("--out", required=True)
+    # Default matches the original fixed value, so nothing changes unless asked.
+    run.add_argument("--num-predict", type=int, default=256,
+                     help="output token budget per case (default 256); raise it for\nreasoning models that spend the budget before emitting the decision")
     verify = commands.add_parser("verify", help="deterministically verify a run directory")
     verify.add_argument("run_dir", type=Path)
     card = commands.add_parser("card", help="create a sanitized card requiring human review")
@@ -31,7 +34,7 @@ def main(argv=None) -> int:
     args = parser().parse_args(argv)
     try:
         if args.command == "run":
-            result = enqueue(args.model, args.suite, args.out)
+            result = enqueue(args.model, args.suite, args.out, args.num_predict)
         elif args.command == "verify":
             result = verify_run(args.run_dir)
         elif args.command == "card":

@@ -22,7 +22,28 @@ def _load_reconlab():
     return DEFAULT_ROOT, JobQueue, LabDB, loaded
 
 
-def enqueue(model: str, suite: str, out_name: str) -> dict:
+def enqueue(model: str, suite: str, out_name: str, num_predict: int = 256) -> dict:
+    """Enqueue one bounded run.
+
+    `num_predict` defaults to 256, the original fixed value, so existing
+    behaviour is unchanged unless a caller asks otherwise.
+
+    Why it is overridable at all: measured 2026-11-02, a reasoning model spends
+    the whole 256-token budget on its preamble and never emits the closing JSON,
+    so every case scores `invalid` and the run reads as a total contract failure.
+    `heretic:4b` returned output_tokens 256/256 on 48 of 48 cases and
+    `qwen3.5:9b` on 40 of 48, while `llama3.1:8b` never hit the cap at all
+    (median 37). Attributing that to the model rather than the budget would be
+    blaming the subject for a harness limit, so the budget has to be a variable
+    the operator can set and the run can record.
+    """
+    # Validate caller input before touching the environment or the queue, so a
+    # bad budget is rejected on its own terms rather than behind an unrelated
+    # RuntimeError about operator configuration.
+    if not isinstance(num_predict, int) or isinstance(num_predict, bool):
+        raise ValueError("num_predict must be an integer")
+    if not 1 <= num_predict <= 8192:
+        raise ValueError("num_predict must be between 1 and 8192")
     default_root, JobQueue, _, _ = _load_reconlab()
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._/+:\-]{0,199}", model):
         raise ValueError("model identity is invalid")
@@ -41,7 +62,7 @@ def enqueue(model: str, suite: str, out_name: str) -> dict:
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,95}", run_id):
         raise ValueError("out must name one bounded run directory")
     spec = {"model": model, "suite": suite, "run_id": run_id,
-            "sampling": {"temperature": 0, "seed": 42, "num_predict": 256}}
+            "sampling": {"temperature": 0, "seed": 42, "num_predict": num_predict}}
     return JobQueue(default_root).enqueue(spec, kind="boundarybench", planned_units=48)
 
 
