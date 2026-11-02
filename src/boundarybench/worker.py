@@ -103,17 +103,24 @@ def execute_job(spec: dict, *, root: Path, api: str, chat_fn=None, model_info_fn
         # Opt-in so prior runs stay reproducible. Set BOUNDARYBENCH_THINK=off to
         # score the decision rather than the preamble.
         think_env = os.environ.get("BOUNDARYBENCH_THINK", "").strip().lower()
-        think = False if think_env in ("off", "0", "false", "no") else None
-        settings = {"options": options}
-        if think is not None:
-            settings["think"] = think
-        chat_fn = lambda model, system, prompt, options: inference_chat(
-            model,
-            [{"role": "system", "content": system}, {"role": "user", "content": prompt}],
-            {**settings, "options": options},
-            api=api,
-            response_format="json",
-        )
+        think_off = think_env in ("off", "0", "false", "no")
+
+        def chat_fn(model, system, prompt, options):
+            # `options` is per-call, so the settings dict is built here rather
+            # than captured from an enclosing scope -- an earlier version read
+            # `options` outside this function and raised UnboundLocalError at
+            # the first case, after the job had already been queued.
+            settings = {"options": options}
+            if think_off:
+                settings["think"] = False
+            return inference_chat(
+                model,
+                [{"role": "system", "content": system},
+                 {"role": "user", "content": prompt}],
+                settings,
+                api=api,
+                response_format="json",
+            )
     if model_info_fn is None:
         from reconlab.ollama import show, tags, weight_digest
         def model_info_fn(model):
