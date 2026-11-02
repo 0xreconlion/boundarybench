@@ -78,10 +78,39 @@ def execute_job(spec: dict, *, root: Path, api: str, chat_fn=None, model_info_fn
         raise ValueError("BoundaryBench run id already exists")
     if chat_fn is None:
         from reconlab.ollama import inference_chat
+        # A thinking-capable model spends its whole output budget reasoning and
+        # emits an EMPTY content field, so every case scores invalid and the run
+        # reads as a total contract failure by the model.
+        #
+        # Measured on the node, 2026-11-02, reconcoda-heretic:4b, one case:
+        #
+        #   json mode             eval_count 256  done_reason "length"
+        #                         thinking 1023 chars, content ""      -> invalid
+        #   JSON schema           eval_count 256  done_reason "length"
+        #                         identical -- a schema changes NOTHING
+        #   think=False           eval_count  27  done_reason "stop"
+        #                         thinking 0, content valid            -> parses
+        #
+        # /api/show reports which models this applies to: heretic:4b and
+        # qwen3.5:9b advertise "thinking"; llama3.1:8b does not, and llama was
+        # the one model that never truncated. The capability flag predicted the
+        # failure exactly.
+        #
+        # A JSON schema was tried first and rejected on evidence: byte-identical
+        # output on both thinking models. The output contract was never the
+        # problem; unbounded reasoning inside a bounded budget was.
+        #
+        # Opt-in so prior runs stay reproducible. Set BOUNDARYBENCH_THINK=off to
+        # score the decision rather than the preamble.
+        think_env = os.environ.get("BOUNDARYBENCH_THINK", "").strip().lower()
+        think = False if think_env in ("off", "0", "false", "no") else None
+        settings = {"options": options}
+        if think is not None:
+            settings["think"] = think
         chat_fn = lambda model, system, prompt, options: inference_chat(
             model,
             [{"role": "system", "content": system}, {"role": "user", "content": prompt}],
-            {"options": options},
+            {**settings, "options": options},
             api=api,
             response_format="json",
         )

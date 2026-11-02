@@ -42,8 +42,12 @@ def enqueue(model: str, suite: str, out_name: str, num_predict: int = 256) -> di
     # RuntimeError about operator configuration.
     if not isinstance(num_predict, int) or isinstance(num_predict, bool):
         raise ValueError("num_predict must be an integer")
-    if not 1 <= num_predict <= 8192:
-        raise ValueError("num_predict must be between 1 and 8192")
+    # Must match core.validate_sampling's ceiling exactly. An earlier version of
+    # this guard allowed 8192 while the worker rejected anything over 1024, so a
+    # larger job would enqueue happily and then fail at execution -- a guard that
+    # accepts what the next layer refuses is worse than no guard.
+    if not 1 <= num_predict <= 1024:
+        raise ValueError("num_predict must be between 1 and 1024")
     default_root, JobQueue, _, _ = _load_reconlab()
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._/+:\-]{0,199}", model):
         raise ValueError("model identity is invalid")
